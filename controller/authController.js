@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const saltRounds = 10;
+const saltRounds = 3;
 const jwtSecret = process.env.JWT_SECRET;
 
 export const register = async (req, res) => {
@@ -25,7 +25,7 @@ export const register = async (req, res) => {
     await user.save();
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("Error registering user:", error);
+    console.error("Error registering user:", error); // Log the error
     res.status(500).json({ error: "An error occurred while registering user" });
   }
 };

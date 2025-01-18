@@ -9,16 +9,19 @@ export const getPosts = async (req, res) => {
       _id: post._id,
       title: post.title,
       content: post.content,
-      author: {
-        id: post.author._id,
-        name: post.author.name,
-        email: post.author.email,
-      },
+      author: post.author
+        ? {
+            id: post.author._id,
+            name: post.author.name,
+            email: post.author.email,
+          }
+        : null,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     }));
     res.json(formattedPosts);
   } catch (error) {
+    console.error("Error fetching posts:", error);
     res.status(500).json({ error: "An error occurred while fetching posts" });
   }
 };
@@ -27,7 +30,6 @@ export const createPost = async (req, res) => {
   const { title, content } = req.body;
 
   try {
-    // Ambil data author dari token yang telah diverifikasi oleh middleware
     const authorId = req.userId;
 
     const author = await User.findById(authorId);
