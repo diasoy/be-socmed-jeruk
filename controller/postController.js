@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import Post from "../models/Post.js";
 import User from "../models/User.js";
 
@@ -7,7 +6,6 @@ export const getPosts = async (req, res) => {
     const posts = await Post.find().populate("author");
     const formattedPosts = posts.map((post) => ({
       _id: post._id,
-      title: post.title,
       content: post.content,
       author: post.author
         ? {
@@ -16,6 +14,7 @@ export const getPosts = async (req, res) => {
             email: post.author.email,
           }
         : null,
+      likes: post.likes.length,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     }));
@@ -27,7 +26,7 @@ export const getPosts = async (req, res) => {
 };
 
 export const createPost = async (req, res) => {
-  const { title, content } = req.body;
+  const { content } = req.body;
 
   try {
     const authorId = req.userId;
@@ -38,7 +37,6 @@ export const createPost = async (req, res) => {
     }
 
     const post = new Post({
-      title,
       content,
       author: author._id,
     });
@@ -46,13 +44,13 @@ export const createPost = async (req, res) => {
 
     const formattedPost = {
       _id: post._id,
-      title: post.title,
       content: post.content,
       author: {
         id: author._id,
         name: author.name,
         email: author.email,
       },
+      likes: post.likes.length, // Menambahkan jumlah likes
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     };

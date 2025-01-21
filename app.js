@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import postRoutes from "./routes/postRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import likeRoutes from "./routes/likeRoutes.js";
 import dotenv from "dotenv";
 import { verifyToken } from "./middleware/authMiddleware.js";
 
@@ -14,7 +15,7 @@ const port = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
-app.use("/api", verifyToken, postRoutes);
+app.use("/api", verifyToken, postRoutes, likeRoutes);
 app.use("/auth", authRoutes);
 
 mongoose
@@ -30,5 +31,3 @@ mongoose
   .catch((error) => {
     console.error("Error connecting to MongoDB:", error);
   });
-
-  
