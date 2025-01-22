@@ -1,8 +1,32 @@
 import Post from "../models/Post.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
+const jwtSecret = process.env.JWT_SECRET;
+
+const getUserIdFromToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+    return decoded.userId;
+  } catch (error) {
+    throw new Error("Invalid token");
+  }
+};
 
 export const likePost = async (req, res) => {
-  const { postId } = req.body;
-  const userId = req.userId;
+  const { token, postId } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
+
+  let userId;
+  try {
+    userId = getUserIdFromToken(token);
+  } catch (error) {
+    return res.status(401).json({ error: error.message });
+  }
 
   try {
     const post = await Post.findById(postId);
@@ -27,8 +51,18 @@ export const likePost = async (req, res) => {
 };
 
 export const unlikePost = async (req, res) => {
-  const { postId } = req.body;
-  const userId = req.userId;
+  const { token, postId } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
+
+  let userId;
+  try {
+    userId = getUserIdFromToken(token);
+  } catch (error) {
+    return res.status(401).json({ error: error.message });
+  }
 
   try {
     const post = await Post.findById(postId);

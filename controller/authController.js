@@ -49,7 +49,15 @@ export const login = async (req, res) => {
       jwtSecret,
       { expiresIn: "24h" }
     );
-    res.json({ message: "Login successful", token });
+    res.json({
+      message: "Login successful",
+      token,
+      author: {
+        author_id: user._id,
+        author_name: user.name,
+        author_email: user.email,
+      },
+    });
   } catch (error) {
     console.error("Error logging in:", error);
     res.status(500).json({ error: "An error occurred while logging in" });

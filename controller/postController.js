@@ -1,7 +1,12 @@
 import Post from "../models/Post.js";
-import User from "../models/User.js";
 
-export const getPosts = async (req, res) => {
+export const getPostsByToken = async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
+
   try {
     const posts = await Post.find().populate("author");
     const formattedPosts = posts.map((post) => ({
@@ -26,40 +31,37 @@ export const getPosts = async (req, res) => {
 };
 
 export const createPost = async (req, res) => {
-  const { content } = req.body;
+  const { content, token, author_id, author_name, author_email } = req.body;
+
+  if (!content) {
+    return res.status(400).json({ error: "Content is required" });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
+
+  if (!author_id || !author_name || !author_email) {
+    return res.status(400).json({ error: "Author information is required" });
+  }
 
   try {
-    const authorId = req.userId;
-
-    const author = await User.findById(authorId);
-    if (!author) {
-      return res.status(404).json({ error: "Author not found" });
-    }
-
-    const post = new Post({
+    const newPost = new Post({
       content,
-      author: author._id,
-    });
-    await post.save();
-
-    const formattedPost = {
-      _id: post._id,
-      content: post.content,
       author: {
-        id: author._id,
-        name: author.name,
-        email: author.email,
+        _id: author_id,
+        name: author_name,
+        email: author_email,
       },
-      likes: post.likes.length, // Menambahkan jumlah likes
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    };
+      likes: [],
+    });
 
-    res
-      .status(201)
-      .json({ message: "Post created successfully", post: formattedPost });
+    await newPost.save();
+    res.status(201).json(newPost);
   } catch (error) {
     console.error("Error creating post:", error);
-    res.status(500).json({ error: "An error occurred while creating post" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while creating the post" });
   }
 };
