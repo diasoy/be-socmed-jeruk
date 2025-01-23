@@ -2,13 +2,20 @@ import Post from "../models/Post.js";
 
 export const getPostsByToken = async (req, res) => {
   const { token } = req.body;
+  const page = parseInt(req.query.page) || 1;
+  const perPage = parseInt(req.query.perPage) || 10;
 
   if (!token) {
     return res.status(400).json({ error: "Token is required" });
   }
 
   try {
-    const posts = await Post.find().populate("author");
+    const totalPosts = await Post.countDocuments();
+    const posts = await Post.find()
+      .populate("author")
+      .skip((page - 1) * perPage)
+      .limit(perPage);
+
     const formattedPosts = posts.map((post) => ({
       _id: post._id,
       content: post.content,
@@ -19,11 +26,19 @@ export const getPostsByToken = async (req, res) => {
             email: post.author.email,
           }
         : null,
-      likes: post.likes.length,
+      likes: post.likes,
+      comments: post.comments,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     }));
-    res.json(formattedPosts);
+
+    res.json({
+      totalPosts,
+      totalPages: Math.ceil(totalPosts / perPage),
+      currentPage: page,
+      perPage,
+      posts: formattedPosts,
+    });
   } catch (error) {
     console.error("Error fetching posts:", error);
     res.status(500).json({ error: "An error occurred while fetching posts" });
