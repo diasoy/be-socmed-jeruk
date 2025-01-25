@@ -8,9 +8,9 @@ steps:
         "asia-southeast2-docker.pkg.dev/jeruk-sosmed/backend-jeruk-api/jeruk-sosmed-api:latest",
         ".",
       ]
-      options:
-        serviceAccount: 771822095302-compute@developer.gserviceaccount.com
-        logsBucket: gs://jeruk_sosmed_logs
+    options:
+      serviceAccount: 771822095302-compute@developer.gserviceaccount.com
+      logsBucket: gs://jeruk_sosmed_logs
 
   # Step 2: Push Docker image ke Artifact Registry
   - name: "gcr.io/cloud-builders/docker"
