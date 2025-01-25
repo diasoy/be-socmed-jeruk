@@ -1,4 +1,18 @@
 import Post from "../models/Post.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
+const jwtSecret = process.env.JWT_SECRET;
+
+const getUserIdFromToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+    return decoded.userId;
+  } catch (error) {
+    throw new Error("Invalid token");
+  }
+};
 
 export const getPostsByToken = async (req, res) => {
   const { token } = req.body;
@@ -78,5 +92,66 @@ export const createPost = async (req, res) => {
     res
       .status(500)
       .json({ error: "An error occurred while creating the post" });
+  }
+};
+
+export const detailPost = async (req, res) => {
+  const { token } = req.body;
+  const { postId } = req.params;
+
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
+
+  let userId;
+  try {
+    userId = getUserIdFromToken(token);
+  } catch (error) {
+    return res.status(401).json({ error: error.message });
+  }
+
+  try {
+    const post = await Post.findById(postId)
+      .populate("author")
+      .populate({
+        path: "comments",
+        populate: {
+          path: "author",
+          model: "User",
+        },
+      });
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const formattedPost = {
+      _id: post._id,
+      content: post.content,
+      author: post.author
+        ? {
+            id: post.author._id,
+            name: post.author.name,
+            email: post.author.email,
+          }
+        : null,
+      likes: post.likes,
+      comments: post.comments.map((comment) => ({
+        _id: comment._id,
+        comment: comment.comment,
+        username: comment.username,
+        email: comment.email,
+        createdAt: comment.createdAt,
+      })),
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    };
+
+    res.json(formattedPost);
+  } catch (error) {
+    console.error("Error fetching post details:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching post details" });
   }
 };
